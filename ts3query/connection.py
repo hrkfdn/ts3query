@@ -1,7 +1,7 @@
 import socket
 
-from response import TS3Response
-import utils
+from .response import TS3Response
+from . import utils
 
 class TS3Connection():
     def __init__(self, host, port):

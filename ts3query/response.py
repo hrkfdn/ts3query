@@ -1,6 +1,6 @@
 import json # required for prettyprint
 
-import utils
+from . import utils
 
 class TS3Response():
     def __init__(self, error, response=None):
