@@ -4,23 +4,26 @@ import utils
 
 class TS3Response():
     def __init__(self, error, response=None):
-        self.responsedict = {}
-
+        self.res = {"response": []}
         for v in error.split(" "):
             if v.startswith("id="):
-                self.errorid = v[3::]
+                self.res["errorid"] = v[3::]
             elif v.startswith("msg="):
-                self.errormsg = utils.unescape(v[4::])
+                self.res["errormsg"] = utils.unescape(v[4::])
 
         # some responses only contain a status code
         if response is not None:
-            for v in response.split(" "):
-                s = v.split("=", 1)
-                if len(s) > 1:
-                    self.responsedict[s[0]] = utils.unescape(s[1])
-                else:
-                    self.responsedict[s[0]] = None
-
+            r = response.split("|")
+            for chunk in r:
+                tempdict = {}
+                for v in chunk.split(" "):
+                    s = v.split("=", 1)
+                    if len(s) > 1:
+                        tempdict[s[0]] = utils.unescape(s[1])
+                    else:
+                        tempdict[s[0]] = None
+                self.res["response"].append(tempdict)
+                    
     def printresp(self):
-        print("Error ID:", self.errorid, " - Error Message:", self.errormsg)
-        print(json.dumps(self.responsedict, sort_keys=True, indent=4))
+        print("Error ID:", self.res["errorid"], " - Error Message:", self.res["errormsg"])
+        print(json.dumps(self.res, sort_keys=True, indent=4))
