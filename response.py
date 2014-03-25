@@ -23,7 +23,11 @@ class TS3Response():
                     else:
                         tempdict[s[0]] = None
                 self.res["response"].append(tempdict)
+
+    def tojson(self, pretty=False):
+        idt = 4 if pretty else None
+        return json.dumps(self.res, sort_keys=True, indent=idt)
                     
     def printresp(self):
         print("Error ID:", self.res["errorid"], " - Error Message:", self.res["errormsg"])
-        print(json.dumps(self.res, sort_keys=True, indent=4))
+        print(self.tojson(True))
