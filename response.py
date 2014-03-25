@@ -7,7 +7,7 @@ class TS3Response():
         self.res = {"response": []}
         for v in error.split(" "):
             if v.startswith("id="):
-                self.res["errorid"] = v[3::]
+                self.res["errorid"] = int(v[3::])
             elif v.startswith("msg="):
                 self.res["errormsg"] = utils.unescape(v[4::])
 
@@ -29,5 +29,4 @@ class TS3Response():
         return json.dumps(self.res, sort_keys=True, indent=idt)
                     
     def printresp(self):
-        print("Error ID:", self.res["errorid"], " - Error Message:", self.res["errormsg"])
         print(self.tojson(True))
