@@ -38,6 +38,7 @@ class TS3Connection():
 
         response = self.getresponse()
         response.printresp()
+        return response
 
     def login(self, user, password):
         u_esc = utils.escape(user)
