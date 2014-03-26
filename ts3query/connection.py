@@ -1,6 +1,7 @@
 import socket
 
 from .response import TS3Response
+from .channels import TS3Channels
 from . import utils
 
 class TS3Connection():
@@ -37,10 +38,20 @@ class TS3Connection():
         self.send(buf)
 
         response = self.getresponse()
-        response.printresp()
         return response
 
     def login(self, user, password):
         u_esc = utils.escape(user)
         p_esc = utils.escape(password)
         self.sendcmd("login", client_login_name=user, client_login_password=password)
+
+    def getchannels(self, parameters=None):
+        if parameters:
+            res = self.sendcmd("channellist " + parameters)
+        else:
+            res = self.sendcmd("channellist")
+
+        if res.ok:
+            return TS3Channels(res)
+        else:
+            return None
