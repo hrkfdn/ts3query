@@ -24,6 +24,10 @@ class TS3Response():
                         tempdict[s[0]] = None
                 self.res["response"].append(tempdict)
 
+    @property
+    def ok(self):
+        return self.res["errorid"] == 0
+
     def tojson(self, pretty=False):
         idt = 4 if pretty else None
         return json.dumps(self.res, sort_keys=True, indent=idt)
