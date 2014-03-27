@@ -2,6 +2,7 @@ import socket
 
 from .response import TS3Response
 from .channels import TS3Channels
+from .clients import TS3Clients
 from . import utils
 
 class TS3Connection():
@@ -20,15 +21,20 @@ class TS3Connection():
             self.sf.readline() # flush welcome message
 
     def getresponse(self):
-        firstline = self.sf.readline().strip()
+        firstline = self.sf.readline()
         if firstline.startswith("error"):
-            return TS3Response(firstline)
+            return TS3Response(firstline.strip())
         else:
-            return TS3Response(self.sf.readline().strip(), firstline)
+            return TS3Response(self.sf.readline().strip(), firstline.strip())
 
     def send(self, string):
         cmdterminated = string + "\n"
-        self.socket.send(cmdterminated.encode())
+        try:
+            self.socket.send(cmdterminated.encode())
+        except ConnectionError as e:
+            print("Reconnecting due to connection problem: ", e)
+            self.connect()
+            self.socket.send(cmdterminated.encode())
 
     def sendcmd(self, command, **kwargs):
         buf = command
@@ -53,5 +59,16 @@ class TS3Connection():
 
         if res.ok:
             return TS3Channels(res)
+        else:
+            return None
+
+    def getclients(self, parameters=None):
+        if parameters:
+            res = self.sendcmd("clientlist " + parameters)
+        else:
+            res = self.sendcmd("clientlist")
+
+        if res.ok:
+            return TS3Clients(res)
         else:
             return None
