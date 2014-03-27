@@ -26,7 +26,10 @@ class TS3Response():
 
     @property
     def ok(self):
-        return self.res["errorid"] == 0
+        if 'errorid' in self.res:
+            return self.res["errorid"] == 0
+        else:
+            return False
 
     def tojson(self, pretty=False):
         idt = 4 if pretty else None
