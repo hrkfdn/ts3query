@@ -1,4 +1,5 @@
 import socket
+import threading
 
 from .response import TS3Response
 from .channels import TS3Channels
@@ -9,9 +10,17 @@ class TS3Connection():
     def __init__(self, host, port):
         self.host = host
         self.port = port
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.lock = threading.Lock()
+
+        self.keepalivetimer = None
+        self.connected = False
+
+    def __del__(self):
+        if self.connected:
+            self.disconnect()
 
     def connect(self):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
         self.sf = self.socket.makefile(mode="r", buffering=1, encoding="utf-8", newline="\r")
 
@@ -19,10 +28,41 @@ class TS3Connection():
             raise IOError("Opposite party did not send \"TS3\" message.")
         else:
             self.sf.readline() # flush welcome message
+            self.connected = True
+
+    def disconnect(self):
+        if self.keepalivetimer is not None:
+            self.keepalivetimer.cancel()
+        self.socket.close()
+        self.connected = False
+
+    def reconnect(self):
+        self.disconnect()
+        self.connect()
+        if hasattr(self, 'user') and hasattr(self, 'password'):
+            self.login(self.user, self.password)
+
+    def dokeepalive(self, interval):
+        if self.connected:
+            # this command does not require special priviliges and can therefore be used
+            # for dirty keepalive requests
+            self.sendcmd("whoami")
+            self.keepalivetimer = threading.Timer(interval, self.dokeepalive, args=[interval])
+            self.keepalivetimer.start()
+
+    def keepalive(self, interval=60):
+        self.keepalivetimer = threading.Timer(interval, self.dokeepalive, args=[interval])
+        self.keepalivetimer.start()
 
     def getresponse(self):
-        firstline = self.sf.readline()
-        if firstline.startswith("error"):
+        try:
+            firstline = self.sf.readline()
+        except socket.error:
+            return None
+
+        if len(firstline) == 0:
+            return None
+        elif firstline.startswith("error"):
             return TS3Response(firstline.strip())
         else:
             return TS3Response(self.sf.readline().strip(), firstline.strip())
@@ -30,23 +70,26 @@ class TS3Connection():
     def send(self, string):
         cmdterminated = string + "\n"
         try:
-            self.socket.send(cmdterminated.encode())
+            sent = self.socket.send(cmdterminated.encode())
         except ConnectionError as e:
-            print("Reconnecting due to connection problem: ", e)
-            self.connect()
-            self.socket.send(cmdterminated.encode())
+            print("In send(): connection error!")
 
     def sendcmd(self, command, **kwargs):
-        buf = command
-        for key in kwargs:
-            buf += " " + key
-            buf += "=" + kwargs[key]
-        self.send(buf)
+        with self.lock:
+            buf = command
+            for key in kwargs:
+                buf += " " + key
+                buf += "=" + kwargs[key]
+            self.send(buf)
 
-        response = self.getresponse()
-        return response
+            response = self.getresponse()
+            return response
 
     def login(self, user, password):
+        # save in case we need to reconnect
+        self.user = user
+        self.password = password
+
         u_esc = utils.escape(user)
         p_esc = utils.escape(password)
         self.sendcmd("login", client_login_name=user, client_login_password=password)
