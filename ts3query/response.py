@@ -24,7 +24,11 @@ class TS3Response(Mapping):
                 for v in chunk.split(" "):
                     s = v.split("=", 1)
                     if len(s) > 1:
-                        tempdict[s[0]] = utils.unescape(s[1])
+                        try:
+                            val = int(utils.unescape(s[1]))
+                        except ValueError:
+                            val = utils.unescape(s[1])
+                        tempdict[s[0]] = val
                     else:
                         tempdict[s[0]] = None
                 self.res.append(tempdict)
@@ -33,17 +37,10 @@ class TS3Response(Mapping):
         return self.errorid == 0
 
     def __str__(self):
-        return self.tojson(True)
+        return utils.tojson(self.res, True)
 
     def __repr__(self):
-        return self.tojson(False)
-
-    def tojson(self, pretty=False):
-        idt = 4 if pretty else None
-        return json.dumps(self.res, sort_keys=True, indent=idt)
-                    
-    def printresp(self):
-        print(self.tojson(True))
+        return utils.tojson(self.res, False)
 
     # implementation of Mapping abstract methods
     def __getitem__(self, key):

@@ -1,3 +1,5 @@
+import json
+
 unescaped = ["\\", "/", " ", "|", "\a", "\b", "\f", "\n", "\r", "\t", "\v"]
 escaped = ["\\\\", "\\/", "\\s", "\\p", "\\a", "\\b", "\\f", "\\n", "\\r", "\\t", "\\v"]
 
@@ -13,3 +15,7 @@ def escape(text):
 
 def unescape(text):
     return translate(text, escaped, unescaped)
+
+def tojson(obj, pretty=False):
+    idt = 4 if pretty else None
+    return json.dumps(obj, sort_keys=True, indent=idt)
