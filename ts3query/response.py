@@ -1,15 +1,20 @@
 import json # required for prettyprint
 
+from collections.abc import Mapping
+
 from . import utils
 
-class TS3Response():
+class TS3Response(Mapping):
     def __init__(self, error, response=None):
-        self.res = {"response": []}
+        self.res = []
+        self.errorid = -1
+        self.errormsg = "TS3Response not initialized."
+
         for v in error.split(" "):
             if v.startswith("id="):
-                self.res["errorid"] = int(v[3::])
+                self.errorid = int(v[3::])
             elif v.startswith("msg="):
-                self.res["errormsg"] = utils.unescape(v[4::])
+                self.errormsg = utils.unescape(v[4::])
 
         # some responses only contain a status code
         if response is not None:
@@ -22,14 +27,16 @@ class TS3Response():
                         tempdict[s[0]] = utils.unescape(s[1])
                     else:
                         tempdict[s[0]] = None
-                self.res["response"].append(tempdict)
-
+                self.res.append(tempdict)
     @property
     def ok(self):
-        if 'errorid' in self.res:
-            return self.res["errorid"] == 0
-        else:
-            return False
+        return self.errorid == 0
+
+    def __str__(self):
+        return self.tojson(True)
+
+    def __repr__(self):
+        return self.tojson(False)
 
     def tojson(self, pretty=False):
         idt = 4 if pretty else None
@@ -37,3 +44,19 @@ class TS3Response():
                     
     def printresp(self):
         print(self.tojson(True))
+
+    # implementation of Mapping abstract methods
+    def __getitem__(self, key):
+        return self.res[key]
+
+    def __setitem__(self, key, value):
+        self.res[key] = value
+
+    def __delitem__(self, key):
+        del self.res[key]
+
+    def __iter__(self):
+        return iter(self.res)
+
+    def __len__(self):
+        return len(self.res)

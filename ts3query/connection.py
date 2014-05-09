@@ -92,7 +92,7 @@ class TS3Connection():
 
         u_esc = utils.escape(user)
         p_esc = utils.escape(password)
-        self.sendcmd("login", client_login_name=user, client_login_password=password)
+        return self.sendcmd("login", client_login_name=user, client_login_password=password)
 
     def getchannels(self, parameters=None):
         if parameters:
@@ -116,9 +116,9 @@ class TS3Connection():
         else:
             return None
 
-    def getservertitle(self):
+    def getserverinfo(self):
         res = self.sendcmd("serverinfo")
         if res.ok:
-            return res.res["response"][0]["virtualserver_name"]
+            return res[0]["virtualserver_name"]
         else:
             return None

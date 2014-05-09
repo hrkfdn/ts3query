@@ -1,6 +1,6 @@
 class TS3Clients():
     def __init__(self, resp):
-        self.clientlist = resp.res["response"]
+        self.clientlist = resp
 
     def listinchannel(self, cid):
         clients = []

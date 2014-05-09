@@ -1,7 +1,7 @@
 class TS3Channels():
     def __init__(self, resp):
         self.chanlist = [{"cid":"0", "channel_name":"Root", "children":[]}]
-        for c in resp.res["response"]:
+        for c in resp:
             c["children"] = []
             self.addchan(self.chanlist, c)
 
