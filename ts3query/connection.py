@@ -119,6 +119,6 @@ class TS3Connection():
     def getserverinfo(self):
         res = self.sendcmd("serverinfo")
         if res.ok:
-            return res[0]["virtualserver_name"]
+            return res[0]
         else:
             return None
