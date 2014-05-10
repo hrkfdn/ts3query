@@ -23,14 +23,18 @@ class TS3Response(Mapping):
                 tempdict = {}
                 for v in chunk.split(" "):
                     s = v.split("=", 1)
+                    key = s[0]
                     if len(s) > 1:
+                        val = utils.unescape(s[1])
                         try:
-                            val = int(utils.unescape(s[1]))
+                            if "name" in key:
+                                tempdict[key] = val
+                            else:
+                                tempdict[key] = int(val)
                         except ValueError:
-                            val = utils.unescape(s[1])
-                        tempdict[s[0]] = val
+                            tempdict[key] = val
                     else:
-                        tempdict[s[0]] = None
+                        tempdict[key] = None
                 self.res.append(tempdict)
     @property
     def ok(self):
