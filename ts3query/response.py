@@ -8,7 +8,7 @@ class TS3Response(Mapping):
     def __init__(self, error, response=None):
         self.res = []
         self.errorid = -1
-        self.errormsg = "TS3Response not initialized."
+        self.errormsg = "ERROR: TS3Response empty."
 
         for v in error.split(" "):
             if v.startswith("id="):

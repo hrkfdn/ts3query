@@ -61,7 +61,7 @@ class TS3Connection():
             return None
 
         if len(firstline) == 0:
-            return None
+            return TS3Response("")
         elif firstline.startswith("error"):
             return TS3Response(firstline.strip())
         else:
